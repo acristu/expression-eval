@@ -85,7 +85,7 @@ const fixtures = [
 ];
 
 
-expr.addUnaryOps('#', function(arg) {
+expr.addUnaryOp('#', function(arg) {
     return '-->#: ' + arg + ' <--';
 });
 

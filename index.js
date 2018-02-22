@@ -136,6 +136,6 @@ module.exports = {
   compile: compile,
   setUnopsCallback: setUnopsCallback,
   setBinopsCallback: setBinopsCallback,
-  addUnaryOps: addUnaryOp, 
-  addBinaryOps: addBinaryOp
+  addUnaryOp: addUnaryOp, 
+  addBinaryOp: addBinaryOp
 };
