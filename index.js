@@ -28,6 +28,7 @@ var binops = {
   '/':   function (a, b) { return a / b; },
   '%':   function (a, b) { return a % b; }
 };
+var binopsCallback = null;
 
 var unops = {
   '-' :  function (a) { return -a; },
@@ -35,6 +36,7 @@ var unops = {
   '~' :  function (a) { return ~a; },
   '!' :  function (a) { return !a; },
 };
+var unopsCallback = null;
 
 function evaluateArray ( list, context ) {
   return list.map((v) => evaluate(v, context));
@@ -49,6 +51,14 @@ function evaluateMember ( node, context ) {
   }
 }
 
+function evaluateBinop(op, left, right) {
+  return binopsCallback ? binopsCallback(op, left, right) : binops[op](left, right);
+}
+
+function evaluateUnop(op, arg) {
+  return unopsCallback ? unopsCallback(op, arg) : unops[op](arg);
+}
+
 function evaluate ( node, context ) {
 
   switch ( node.type ) {
@@ -57,7 +67,7 @@ function evaluate ( node, context ) {
       return evaluateArray( node.elements, context );
 
     case 'BinaryExpression':
-      return binops[ node.operator ]( evaluate( node.left, context ), evaluate( node.right, context ) );
+      return evaluateBinop(node.operator,  evaluate( node.left, context ), evaluate( node.right, context ) );
 
     case 'CallExpression':
       let caller, fn;
@@ -81,7 +91,7 @@ function evaluate ( node, context ) {
       return node.value;
 
     case 'LogicalExpression':
-      return binops[ node.operator ]( evaluate( node.left, context ), evaluate( node.right, context ) );
+      return evaluateBinop(node.operator, evaluate( node.left, context ), evaluate( node.right, context ) );
 
     case 'MemberExpression':
       return evaluateMember(node, context)[1];
@@ -90,7 +100,7 @@ function evaluate ( node, context ) {
       return context;
 
     case 'UnaryExpression':
-      return unops[ node.operator ]( evaluate( node.argument, context ) );
+      return evaluateUnop(node.operator, evaluate( node.argument, context ) );
 
     default:
       return undefined;
@@ -102,8 +112,30 @@ function compile (expression) {
   return evaluate.bind(null, jsep(expression));
 }
 
+function setBinopsCallback(callback) {
+  binopsCallback = callback;
+}
+
+function setUnopsCallback(callback) {
+  unopsCallback = callback;
+}
+
+function addUnaryOp(op, fun) {
+  jsep.addUnaryOp(op);
+  unops[op] = fun;
+}
+
+function addBinaryOp(op, fun) {
+  jsep.addBinaryOp(op);
+  binops[op] = fun;
+}
+
 module.exports = {
   parse: jsep,
   eval: evaluate,
-  compile: compile
+  compile: compile,
+  setUnopsCallback: setUnopsCallback,
+  setBinopsCallback: setBinopsCallback,
+  addUnaryOps: addUnaryOp, 
+  addBinaryOps: addBinaryOp
 };

@@ -78,7 +78,16 @@ const fixtures = [
   // 'this' context
   {expr: 'this.three', expected: 3 },
 
+  // configurable binary/unary ops
+  {expr: '#(one + two + 1)', expected: '-->#: 4 <--'},
+  
+
 ];
+
+
+expr.addUnaryOps('#', function(arg) {
+    return '-->#: ' + arg + ' <--';
+});
 
 const context = {
   string: 'string',
