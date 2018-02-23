@@ -1,6 +1,23 @@
 const expr = require('./');
 const assert = require('assert');
 
+
+// configurable operator behavior
+expr.addParserUnaryOp('#');
+expr.addUnaryOp('#', function(arg) {
+    return '-->#: ' + arg + ' <--';
+});
+
+//multiple instances of the evaluator
+var expr1 = new expr.ExpressionEval();
+var expr2 = new expr.ExpressionEval();
+expr1.addUnaryOp('#', function(arg) {
+  return '-->#1: ' + arg + ' <--';
+});
+expr2.addUnaryOp('#', function(arg) {
+  return '-->#2: ' + arg + ' <--';
+});
+
 const fixtures = [
 
   // array expression
@@ -81,13 +98,11 @@ const fixtures = [
   // configurable binary/unary ops
   {expr: '#(one + two + 1)', expected: '-->#: 4 <--'},
   
+  //multiple instances of the evaluator
+  {expr: '#(one + two + 1)', expected: '-->#1: 4 <--', exprInstance: expr1},
+  {expr: '#(one + two + 1)', expected: '-->#2: 4 <--', exprInstance: expr2},
 
 ];
-
-
-expr.addUnaryOp('#', function(arg) {
-    return '-->#: ' + arg + ' <--';
-});
 
 const context = {
   string: 'string',
@@ -109,9 +124,10 @@ var passed = 0;
 
 fixtures.forEach((o) => {
   tests++;
-  var val = expr.compile(o.expr)(context);
+  var val = (o.exprInstance || expr).compile(o.expr)(context);
   assert.equal(val, o.expected, `Failed: ${o.expr} (${val}) === ${o.expected}`);
   passed++;
 });
+
 
 console.log('%s/%s tests passed.', passed, tests);
